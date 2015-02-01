@@ -1,3 +1,3 @@
 #Description
 
-A UDP network engine
+network engine with reliability

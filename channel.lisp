@@ -126,7 +126,11 @@
 	       (minimum-sequence (- latest-sequence 34)))
 	  (setf received-packets (remove-if (lambda (x) (<= (packet-data-sequence x) minimum-sequence)) received-packets))))
     (setf pending-ack-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 1001)) pending-ack-packets))
-    (setf acked-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 2001)) acked-packets))))
+    (setf acked-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 2001)) acked-packets))
+    (delete-duplicates sent-packets)
+    (delete-duplicates received-packets)
+    (delete-duplicates pending-ack-packets)
+    (delete-duplicates acked-packets)))
 
 (defun make-channel (remote-host remote-port)
   (make-instance 'channel :remote-host remote-host :remote-port remote-port))
