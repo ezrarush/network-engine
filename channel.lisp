@@ -97,13 +97,6 @@
       (setf remote-sequence-number sequence))
     (process-ack self ack ack-bitfield)))
 
-;; (defmethod make-header ((self channel) buffer)
-;;   (with-slots (local-sequence-number remote-sequence-number) self
-;;     (userial:with-buffer (buffer)
-;;       (userial:serialize* :uint32 local-sequence-number
-;; 			  :uint32 remote-sequence-number
-;; 			  :uint32 (generate-ack-bitfield)))))
-
 (defmethod generate-ack-bitfield ((self channel))
   (with-slots (remote-sequence-number received-packets) self
     (let ((ack-bitfield 0))
@@ -118,19 +111,24 @@
   (with-slots (pending-ack-packets acked-packets number-acked rtt) self
     (setf pending-ack-packets (remove-if (lambda (x) (or (eq (packet-data-sequence x) ack) (and (<= (packet-data-sequence x) ack) (<= (bit-index-for-sequence (packet-data-sequence x) ack) 31)))) pending-ack-packets))))
 
-(defmethod update ((self channel))
-  (with-slots (sent-packets received-packets pending-ack-packets acked-packets) self
-    (setf sent-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 1001)) sent-packets))
-    (if received-packets
-	(let* ((latest-sequence (packet-data-sequence (car (last received-packets))))
-	       (minimum-sequence (- latest-sequence 34)))
-	  (setf received-packets (remove-if (lambda (x) (<= (packet-data-sequence x) minimum-sequence)) received-packets))))
-    (setf pending-ack-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 1001)) pending-ack-packets))
-    (setf acked-packets (remove-if (lambda (x) (> (- (sdl2:get-ticks) (packet-data-time x)) 2001)) acked-packets))
+(defmethod update-metrics ((self channel))
+  (with-slots (sent-packets received-packets pending-ack-packets acked-packets number-lost) self
     (delete-duplicates sent-packets)
     (delete-duplicates received-packets)
     (delete-duplicates pending-ack-packets)
-    (delete-duplicates acked-packets)))
+    (delete-duplicates acked-packets)
+    (let ((count 0)
+	  (time (sdl2:get-ticks)))
+      (loop for x in pending-ack-packets
+	 counting (> (- time (packet-data-time x)) 1001) into count)
+      (setf number-lost count)
+      (setf pending-ack-packets (remove-if (lambda (x) (> (- time (packet-data-time x)) 1001)) pending-ack-packets))
+      (setf sent-packets (remove-if (lambda (x) (> (- time (packet-data-time x)) 1001)) sent-packets))
+      (setf acked-packets (remove-if (lambda (x) (> (- time (packet-data-time x)) 2001)) acked-packets)))
+    (if received-packets
+	(let* ((latest-sequence (packet-data-sequence (car (last received-packets))))
+	       (minimum-sequence (- latest-sequence 34)))
+	  (setf received-packets (remove-if (lambda (x) (<= (packet-data-sequence x) minimum-sequence)) received-packets))))))
 
 (defun make-channel (remote-host remote-port)
   (make-instance 'channel :remote-host remote-host :remote-port remote-port))

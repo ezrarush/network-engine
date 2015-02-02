@@ -14,6 +14,6 @@
    #:process-sent-packet
    #:process-received-packet
    #:generate-ack-bitfield
-   #:update
+   #:update-metrics
    #:lookup-channel-by-port))
 
