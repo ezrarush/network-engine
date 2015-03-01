@@ -27,9 +27,20 @@
   (usocket:socket-close *socket*)
   (setf *socket* nil))
 
-(defun receive-packet ()
-  (multiple-value-bind (buffer size in-host in-port)
-	  (usocket:socket-receive *socket* (make-array 32768 :element-type '(unsigned-byte 8) :fill-pointer t) nil)
-	(setf *current-remote-host* in-host)
-	(setf *current-remote-port* in-port)
-	buffer))
+;; (defun server-receive-packet ()
+;;   (multiple-value-bind (buffer size in-host in-port)
+;; 	  (usocket:socket-receive *socket* (make-array 32768 :element-type '(unsigned-byte 8) :fill-pointer t) nil)
+;; 	(setf *current-remote-host* in-host)
+;; 	(setf *current-remote-port* in-port)
+;; 	buffer))
+
+(defun receive-packets ()
+  (loop until (not (usocket:wait-for-input network-engine:*socket* :timeout 0 :ready-only t)) do 
+       (multiple-value-bind (buffer size in-host in-port)
+	   (usocket:socket-receive *socket* (make-array 32768 :element-type '(unsigned-byte 8) :fill-pointer t) nil)
+	 (setf *current-remote-host* in-host)
+	 (setf *current-remote-port* in-port)
+	 (let ((channel (lookup-channel-by-port in-port)))
+	   (if channel
+	       (receive-packet channel buffer)
+	       (receive-packet (make-channel in-host in-port) buffer))))))
