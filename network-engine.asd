@@ -6,5 +6,6 @@
   :license "The MIT License (MIT) Copyright (c) 2015 Ezra Rush"
   :serial t
   :components ((:file "package")
+	       (:file "socket")
 	       (:file "channel")))
 

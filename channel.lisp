@@ -80,6 +80,22 @@
 (defmethod initialize-instance :after ((self channel) &key)
   (add-channel-to-db self))
 
+(defmethod send-packet ((self channel) buffer)
+  (with-slots (remote-host remote-port) self
+    (usocket:socket-send *socket*
+			 buffer
+			 (length buffer)
+			 :host remote-host
+			 :port remote-port)))
+
+;; (defmethod receive-packet ((self channel))
+;;   (with-slots (remote-host remote-port) self
+;;     (multiple-value-bind (buffer size in-host in-port)
+;; 	  (usocket:socket-receive *socket* (make-array 32768 :element-type '(unsigned-byte 8) :fill-pointer t) nil)
+;; 	(setf remote-host in-host)
+;; 	(setf remote-port in-port)
+;; 	buffer)))
+
 (defmethod process-sent-packet ((self channel) time size)
   (with-slots (remote-host remote-port local-sequence-number sent-packets pending-ack-packets number-sent) self    
     (let ((data (make-packet-data :sequence local-sequence-number :time time :size size)))
@@ -104,7 +120,7 @@
 	   (unless (>= (packet-data-sequence p-data) remote-sequence-number)
 	     (let ((bit-index (bit-index-for-sequence (packet-data-sequence p-data) remote-sequence-number)))
 	       (when (<= bit-index 31)
-		 (setf ack-bitfield (boole boole-ior ack-bitfield (ash 1 bit-index)))))))
+		 (setf ack-bitfield (boole boole-ior ack-bitfield (ash 1 bit-index))))))) ;; should this be an exclusive or and not inclusive
       ack-bitfield)))
 
 (defmethod process-ack ((self channel) ack ack-bitfield)
