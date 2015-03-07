@@ -11,8 +11,8 @@
    #:open-server-socket
    #:open-client-socket
    #:close-socket
-   #:server-receive-packet
    #:receive-packets
+   #:receive-reliable-packets
    
    ;;channel
    #:*channels*

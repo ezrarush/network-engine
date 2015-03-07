@@ -74,19 +74,18 @@
 (defmethod initialize-instance :after ((self channel) &key)
   (add-channel-to-db self))
 
-;; (defmethod send-packet ((self channel) buffer)
-;;   (with-slots (remote-host remote-port number-sent sent-bandwidth) self
-;;     (usocket:socket-send *socket*
-;; 			 buffer
-;; 			 (length buffer)
-;; 			 :host remote-host
-;; 			 :port remote-port)
-;;     (incf number-sent)
-;;     (incf sent-bandwidth (length buffer))))
+(defmethod send-packet ((self channel) buffer)
+  (with-slots (remote-host remote-port number-sent) self
+    (usocket:socket-send *socket*
+			 buffer
+			 (length buffer)
+			 :host remote-host
+			 :port remote-port)
+    (incf number-sent)))
 
-;; (defmethod receive-packet ((self channel) buffer)
-;;   (with-slots (received-queue number-received) self
-;;     (push (make-message :buffer buffer
-;; 			:time (sdl2:get-ticks)) 
-;; 	  received-queue)
-;;     (incf number-received)))
+(defmethod receive-packet ((self channel) buffer)
+  (with-slots (received-queue number-received) self
+    (push (make-message :buffer buffer
+			:time (sdl2:get-ticks)) 
+	  received-queue)
+    (incf number-received)))
