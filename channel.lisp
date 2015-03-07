@@ -44,20 +44,29 @@
    (remote-port
     :initarg :remote-port
     :accessor remote-port)
-   (sent-packets
+   (sent-queue
     :initform (list)
-    :accessor sent-packets)
-   (received-packets
+    :accessor sent-queue)
+   (received-queue
     :initform (list)
-    :accessor received-packets)
+    :accessor received-queue)
    (number-sent
-    :initform 0)
+    :initform 0
+    :reader number-sent)
    (number-received
-    :initform 0)
-   (sent-bandwidth
-    :initform 0)
+    :initform 0
+    :reader number-received)
+   (bandwidth-sent
+    :initform 0
+    :reader bandwidth-sent)
+   (bandwidth-received
+    :initform 0
+    :reader bandwidth-received)
    (rtt
-    :initform 0)))
+    :initform 0
+    :reader rtt)
+   (rtt-maximum
+    :initform 1000)))
 
 (defun make-channel (remote-host remote-port)
   (make-instance 'channel :remote-host remote-host :remote-port remote-port))
@@ -65,16 +74,19 @@
 (defmethod initialize-instance :after ((self channel) &key)
   (add-channel-to-db self))
 
-(defmethod send-packet ((self channel) buffer)
-  (with-slots (remote-host remote-port) self
-    (usocket:socket-send *socket*
-			 buffer
-			 (length buffer)
-			 :host remote-host
-			 :port remote-port)))
+;; (defmethod send-packet ((self channel) buffer)
+;;   (with-slots (remote-host remote-port number-sent sent-bandwidth) self
+;;     (usocket:socket-send *socket*
+;; 			 buffer
+;; 			 (length buffer)
+;; 			 :host remote-host
+;; 			 :port remote-port)
+;;     (incf number-sent)
+;;     (incf sent-bandwidth (length buffer))))
 
-(defmethod receive-packet ((self channel) buffer)
-  (with-slots (received-packets) self
-    (push (make-message :buffer buffer
-			:time (sdl2:get-ticks)) 
-	  received-packets)))
+;; (defmethod receive-packet ((self channel) buffer)
+;;   (with-slots (received-queue number-received) self
+;;     (push (make-message :buffer buffer
+;; 			:time (sdl2:get-ticks)) 
+;; 	  received-queue)
+;;     (incf number-received)))

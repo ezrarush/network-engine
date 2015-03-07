@@ -7,7 +7,9 @@
   :serial t
   :depends-on (#:usocket)
   :components ((:file "package")
+	       (:file "utils")
 	       (:file "message")
 	       (:file "socket")
-	       (:file "channel")))
+	       (:file "channel")
+	       (:file "reliable-channel")))
 

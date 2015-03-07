@@ -21,14 +21,23 @@
    #:remote-port
    #:sequence-number
    #:remote-sequence-number
-   #:received-packets
+   #:rtt
+   #:number-sent
+   #:number-acked
+   #:bandwidth-sent
+   #:bandwidth-acked
+   #:number-lost
+   #:number-acked
    #:send-packet
    #:receive-packet
    #:process-sent-packet
    #:process-received-packet
    #:generate-ack-bitfield
-   #:update-metrics
+   #:channel-update
    #:lookup-channel-by-port
+
+   ;;reliable-channel
+   #:make-reliable-channel
    
    ;;message
    #:message-buffer
